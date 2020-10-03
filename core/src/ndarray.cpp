@@ -3,8 +3,8 @@
 #include <sstream>
 #include <string>
 
-#include "ndarray.hpp"
-#include "utils.hpp"
+#include "../include/ndarray.hpp"
+#include "../include/utils.hpp"
 
 using namespace std;
 
@@ -63,6 +63,22 @@ ndarray<T>::ndarray(T *data, const std::vector<unsigned> &shape)
     }
     else
         this->shape_products = {shape[0]};
+}
+
+template <typename T>
+void ndarray<T>::reshape(const std::vector<unsigned> &new_shape) {
+    this->shape = new_shape;
+    this->dim = new_shape.size();
+    if(new_shape.size() > 1) {
+        vector<unsigned> subps;
+        for(int i = 1; i < new_shape.size(); i++) {
+            unsigned sp = std::accumulate(new_shape.begin() + i, new_shape.end(), 1, std::multiplies<unsigned>());
+            subps.push_back(sp);
+        }
+        this->shape_products = subps;
+    }
+    else
+        this->shape_products = {new_shape[0]};
 }
 
 template<typename T>

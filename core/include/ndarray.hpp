@@ -34,26 +34,23 @@ public:
     /* Copy sub array with index (i, j, k, ...) */
     ndarray<T> copy(const std::vector<unsigned> &indices) const;
 
+    void reshape(const std::vector<unsigned> &new_shape);
+
     /* (i, j, k, ...) get and set */
     template<typename... A>
     T           operator()(A... args) const;
     template<typename... A>
     T&          operator()(A... args);
-
     bool        operator==(ndarray<T> arh);
-    
     ndarray<T>  operator+(ndarray<T> a) const;
     ndarray<T>& operator+=(const ndarray<T> &a);
     ndarray<T>& operator+=(const T &v);
-
     ndarray<T>  operator-(ndarray<T> a) const;
     ndarray<T>& operator-=(const ndarray<T> &a);
     ndarray<T>& operator-=(const T &v);
-
     ndarray<T>  operator*(ndarray<T> a) const;
     ndarray<T>& operator*=(const ndarray<T> &a);
     ndarray<T>& operator*=(const T &v);
-
     ndarray<T>  operator/(ndarray<T> a) const;
     ndarray<T>& operator/=(const ndarray<T> &a);
     ndarray<T>& operator/=(const T &v);

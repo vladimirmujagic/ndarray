@@ -2,8 +2,8 @@
 #include <sstream>
 #include <string>
 
-#include "ndarray.hpp"
-#include "utils.hpp"
+#include "../include/ndarray.hpp"
+#include "../include/utils.hpp"
 
 using namespace std;
 

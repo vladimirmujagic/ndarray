@@ -1,9 +1,10 @@
-#include "catch.hpp"
+#define CATCH_CONFIG_MAIN
+#include "../catch2/catch.hpp"
 
 #include <vector>
 
-#include "../src/ndarray.hpp"
-#include "data.hpp"
+#include "../../core/include/ndarray.hpp"
+#include "../include/data.hpp"
 
 using namespace std;
 

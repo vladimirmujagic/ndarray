@@ -1,1 +1,5 @@
 .idea
+build
+core/build
+examples/build
+tests/build
