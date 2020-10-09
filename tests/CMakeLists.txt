@@ -22,23 +22,23 @@ target_include_directories(ndarray_test_constructor PRIVATE ./include)
 ###########################################################
 ##        2. Test view                                    #
 ###########################################################
-add_executable(ndarray_test_view src/test_view.cpp)
-target_link_libraries(ndarray_test_view
+add_executable(ndarray_test_at src/test_at.cpp)
+target_link_libraries(ndarray_test_at
     ndarray::library
     catch2::library
 )
-target_include_directories(ndarray_test_view PRIVATE ./include)
+target_include_directories(ndarray_test_at PRIVATE ./include)
 ###########################################################
 
 ###########################################################
 ##        3. Test copy                                    #
 ###########################################################
-add_executable(ndarray_test_copy src/test_copy.cpp)
-target_link_libraries(ndarray_test_copy
+add_executable(ndarray_test_copy_at src/test_copy_at.cpp)
+target_link_libraries(ndarray_test_copy_at
     ndarray::library
     catch2::library
 )
-target_include_directories(ndarray_test_copy PRIVATE ./include)
+target_include_directories(ndarray_test_copy_at PRIVATE ./include)
 ###########################################################
 
 ###########################################################
@@ -63,10 +63,21 @@ target_link_libraries(ndarray_test_operators
 target_include_directories(ndarray_test_operators PRIVATE ./include)
 ###########################################################
 
+###########################################################
+##        6. Test reshape                                 #
+###########################################################
+add_executable(ndarray_test_reshape src/test_reshape.cpp)
+target_link_libraries(ndarray_test_reshape
+    ndarray::library
+    catch2::library
+)
+target_include_directories(ndarray_test_reshape PRIVATE ./include)
+###########################################################
 
 enable_testing()
 add_test(test_constructor     ndarray_test_constructor)
-add_test(test_view            ndarray_test_view)
-add_test(test_copy            ndarray_test_copy)
+add_test(test_at              ndarray_test_at)
+add_test(test_copy_at         ndarray_test_copy_at)
 add_test(test_indices_access  ndarray_test_indices_access)
 add_test(test_operators       ndarray_test_operators)
+add_test(test_reshape         ndarray_test_reshape)

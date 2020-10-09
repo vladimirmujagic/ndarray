@@ -19,7 +19,7 @@ SCENARIO( "ndarray view", "[ndarray]" ) {
         ndarray<float> a2d(test_data->a2d_data, test_data->a2d_shape);
 
         WHEN("array is viewed at index i") {
-            ndarray<float> a1d = a2d.view({1});
+            ndarray<float> a1d = a2d.at({1});
 
             THEN("1d array is returned") {
                 REQUIRE(vector<float>(a1d.data, a1d.data + a1d.size)== vector<float>{4., 5., 6., 7.});
@@ -33,7 +33,7 @@ SCENARIO( "ndarray view", "[ndarray]" ) {
         ndarray<float> a2d_gt(gt_data, {2, 5});
 
         WHEN("array is viewed at index i") {
-            ndarray<float> a2d = a3d.view({1});
+            ndarray<float> a2d = a3d.at({1});
             bool r = a2d == a2d_gt;
             THEN("2d array is returned") {
                 REQUIRE(r == true);

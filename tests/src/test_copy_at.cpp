@@ -17,7 +17,7 @@ SCENARIO( "ndarray copy", "[ndarray]" ) {
         ndarray<float> a2d(test_data->a2d_data, test_data->a2d_shape);
 
         WHEN("array is viewed at index i") {
-            ndarray<float> a1d = a2d.copy({2});
+            ndarray<float> a1d = a2d.copy_at({2});
             float gt_data[4] = {8, 9, 10, 11};
             ndarray<float> a1d_gt(gt_data, {4});
             bool r = a1d == a1d_gt;
@@ -35,7 +35,7 @@ SCENARIO( "ndarray copy", "[ndarray]" ) {
         ndarray<float> a3d(test_data->a3d_data, test_data->a3d_shape);
 
         WHEN("array is viewed at index i") {
-            ndarray<float> a2d = a3d.copy({0});
+            ndarray<float> a2d = a3d.copy_at({0});
             float gt_data[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
             ndarray<float> a2d_gt(gt_data, {2, 5});
             bool r = a2d == a2d_gt;

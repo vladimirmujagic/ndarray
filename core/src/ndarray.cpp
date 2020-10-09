@@ -9,7 +9,7 @@
 using namespace std;
 
 
-void __M_Assert(const char* expr_str, bool expr, const char* file, int line, const char* msg) {
+void M_ASSERT(const char* expr_str, bool expr, const char* file, int line, const char* msg) {
     if (!expr) {
         std::cerr << "Assert failed:\t" << msg << "\n"
                   << "Expected:\t" << expr_str << "\n"
@@ -18,11 +18,20 @@ void __M_Assert(const char* expr_str, bool expr, const char* file, int line, con
     }
 }
 
+void ASSERT_INDICES_IN_RANGE(const std::vector<unsigned> &shape, const std::vector<unsigned> indices) {
+    for(unsigned i = 0; i < indices.size(); i++) {
+        std::ostringstream message;
+        message << "Index " << indices[i] << " not in range " << "(0, " << shape[i] - 1 << ")";
+
+        ASSERT_CONDITION(indices[i] >= 0 && indices[i] <= shape[i] - 1, message.str().c_str());
+    }
+}
+
 template <typename T>
 ndarray<T>::ndarray(const std::vector<unsigned> &shape)
     : shape(shape)
 {
-    M_Assert(!shape.empty(),
+    ASSERT_CONDITION(!shape.empty(),
     "shape is not allowed to be empty");
 
     const unsigned shape_product = accumulate(shape.begin(), shape.end(), 1, multiplies<unsigned>());
@@ -46,7 +55,7 @@ template <typename T>
 ndarray<T>::ndarray(T *data, const std::vector<unsigned> &shape)
     : shape(shape), data(data)
 {
-    M_Assert(!shape.empty(),
+    ASSERT_CONDITION(!shape.empty(),
     "shape is not allowed to be empty");
 
     const unsigned shape_product = accumulate(shape.begin(), shape.end(), 1, multiplies<unsigned>());
@@ -67,6 +76,11 @@ ndarray<T>::ndarray(T *data, const std::vector<unsigned> &shape)
 
 template <typename T>
 void ndarray<T>::reshape(const std::vector<unsigned> &new_shape) {
+    unsigned p = std::accumulate(new_shape.begin(), new_shape.end(), 1, std::multiplies<unsigned>());
+
+    ASSERT_CONDITION(this->size == p,
+    "When reshaping, new shape product must be equal to target ndarray size");
+
     this->shape = new_shape;
     this->dim = new_shape.size();
     if(new_shape.size() > 1) {
@@ -81,6 +95,63 @@ void ndarray<T>::reshape(const std::vector<unsigned> &new_shape) {
         this->shape_products = {new_shape[0]};
 }
 
+template <typename T>
+ndarray<T> ndarray<T>::at(const std::vector<unsigned> &indices) const {
+    const unsigned indices_size = indices.size();
+    const unsigned shape_size = this->shape.size();
+
+    ASSERT_CONDITION(indices_size >= 1 && indices_size <= this->dim - 1,
+    "Number of indices must be between 1 and dim-1");
+    ASSERT_INDICES_IN_RANGE(this->shape, indices);
+
+    if(this->dim == 2) {
+        return ndarray<T>(this->data + (indices[0] * this->shape[1]), {this->shape[1]});
+    }
+
+    unsigned index = 0;
+    for(unsigned i = 0; i < indices.size(); i++) {
+        index += indices[i] * this->shape_products[i];
+    }
+
+    vector<unsigned> new_shape;
+    for(unsigned i = indices_size; i < shape_size; i++) {
+        new_shape.push_back(this->shape[i]);
+    }
+
+    T *start = this->data + index;
+    return ndarray<T>(start, new_shape);
+}
+
+
+template <typename T>
+ndarray<T> ndarray<T>::copy_at(const std::vector<unsigned> &indices) const {
+    const unsigned indices_size = indices.size();
+    const unsigned shape_size = this->shape.size();
+
+    ASSERT_CONDITION(indices_size >= 1 && indices_size <= this->dim - 1,
+    "Number of indices must be between 1 and dim-1");
+    ASSERT_INDICES_IN_RANGE(this->shape, indices);
+
+    unsigned index = 0;
+    for(unsigned i = 0; i < indices.size(); i++) {
+        index += indices[i] * this->shape_products[i];
+    }
+
+    vector<unsigned> new_shape;
+    for(unsigned i = indices_size; i < shape_size; i++) {
+        new_shape.push_back(this->shape[i]);
+    }
+    const unsigned new_shape_product =
+            accumulate(new_shape.begin(), new_shape.end(), 1, multiplies<unsigned>());
+
+    T *start = this->data + index;
+    T *end = start + new_shape_product;
+    T *slice = new T[new_shape_product];
+    std::copy(start, end, slice);
+
+    return ndarray<T>(slice, new_shape);
+}
+
 template<typename T>
 template<typename... A>
 T ndarray<T>::operator()(A... indices) const {
@@ -88,8 +159,9 @@ T ndarray<T>::operator()(A... indices) const {
     unsigned indices_size = is.size();
     unsigned index = is[0];
 
-    M_Assert(indices_size == this->shape.size(),
+    ASSERT_CONDITION(indices_size == this->shape.size(),
     "Index access requires same number of indices as shape size, use view for sub-arrays");
+    ASSERT_INDICES_IN_RANGE(this->shape, is);
 
     if(indices_size == 1)
         return this->data[index];
@@ -113,8 +185,9 @@ T& ndarray<T>::operator()(A... indices) {
     unsigned indices_size = is.size();
     unsigned index = is[0];
 
-    M_Assert(indices_size == this->shape.size(),
+    ASSERT_CONDITION(indices_size == this->shape.size(),
     "Index access requires same number of indices as shape size, use view for sub-arrays");
+    ASSERT_INDICES_IN_RANGE(this->shape, is);
 
     if(indices_size == 1)
         return this->data[index];
@@ -132,56 +205,10 @@ T& ndarray<T>::operator()(A... indices) {
 }
 
 template <typename T>
-ndarray<T> ndarray<T>::view(const std::vector<unsigned> &indices) const {
-    const unsigned indices_size = indices.size();
-    const unsigned shape_size = this->shape.size();
-
-    if(this->dim == 2) {
-        return ndarray<T>(this->data + (indices[0] * this->shape[1]), {this->shape[1]});
-    }
-
-    unsigned index = 0;
-    for(unsigned i = 0; i < indices.size(); i++) {
-        index += indices[i] * this->shape_products[i];
-    }
-
-    vector<unsigned> new_shape;
-    for(unsigned i = indices_size; i < shape_size; i++) {
-        new_shape.push_back(this->shape[i]);
-    }
-
-    T *start = this->data + index;
-    return ndarray<T>(start, new_shape);
-}
-
-
-template <typename T>
-ndarray<T> ndarray<T>::copy(const std::vector<unsigned> &indices) const {
-    const unsigned indices_size = indices.size();
-    const unsigned shape_size = this->shape.size();
-
-    unsigned index = 0;
-    for(unsigned i = 0; i < indices.size(); i++) {
-        index += indices[i] * this->shape_products[i];
-    }
-
-    vector<unsigned> new_shape;
-    for(unsigned i = indices_size; i < shape_size; i++) {
-        new_shape.push_back(this->shape[i]);
-    }
-    const unsigned new_shape_product =
-        accumulate(new_shape.begin(), new_shape.end(), 1, multiplies<unsigned>());
-
-    T *start = this->data + index;
-    T *end = start + new_shape_product;
-    T *slice = new T[new_shape_product];
-    std::copy(start, end, slice);
-
-    return ndarray<T>(slice, new_shape);
-}
-
-template <typename T>
 bool ndarray<T>::operator==(const ndarray<T> arh) {
+    ASSERT_CONDITION(arh.size == this->size && arh.shape == this->shape,
+    "Only arrays with same shape and size can be compared");
+
     for(unsigned i = 0; i < this->size; i++) {
         if(this->data[i] != arh.data[i]) {
             return false;
@@ -193,6 +220,9 @@ bool ndarray<T>::operator==(const ndarray<T> arh) {
 
 template <typename T>
 ndarray<T> ndarray<T>::operator+(const ndarray<T> a) const {
+    ASSERT_CONDITION(a.size == this->size && a.shape == this->shape,
+    "Only arrays with same shape and size can be added");
+
     T *s = new T[this->size];
     for(unsigned i = 0; i < a.size; i++) {
         s[i] = this->data[i] + a.data[i];
@@ -203,6 +233,9 @@ ndarray<T> ndarray<T>::operator+(const ndarray<T> a) const {
 
 template <typename T>
 ndarray<T>& ndarray<T>::operator+=(const ndarray<T> &a) {
+    ASSERT_CONDITION(a.size == this->size && a.shape == this->shape,
+    "Only arrays with same shape and size can be added");
+
     for(unsigned i = 0; i < this->size; i++) {
         this->data[i] += a.data[i];
     }
@@ -221,6 +254,9 @@ ndarray<T>& ndarray<T>::operator+=(const T &v) {
 
 template <typename T>
 ndarray<T> ndarray<T>::operator-(const ndarray<T> a) const {
+    ASSERT_CONDITION(a.size == this->size && a.shape == this->shape,
+    "Only arrays with same shape and size can be subtracted");
+
     T *s = new T[this->size];
     for(unsigned i = 0; i < a.size; i++) {
         s[i] = this->data[i] - a.data[i];
@@ -231,6 +267,9 @@ ndarray<T> ndarray<T>::operator-(const ndarray<T> a) const {
 
 template <typename T>
 ndarray<T>& ndarray<T>::operator-=(const ndarray<T> &a) {
+    ASSERT_CONDITION(a.size == this->size && a.shape == this->shape,
+    "Only arrays with same shape and size can be subtracted");
+
     for(unsigned i = 0; i < this->size; i++) {
         this->data[i] -= a.data[i];
     }
@@ -249,6 +288,9 @@ ndarray<T>& ndarray<T>::operator-=(const T &v) {
 
 template <typename T>
 ndarray<T> ndarray<T>::operator*(const ndarray<T> a) const {
+    ASSERT_CONDITION(a.size == this->size && a.shape == this->shape,
+    "Only arrays with same shape and size can be multiplied");
+
     T *s = new T[this->size];
     for(unsigned i = 0; i < a.size; i++) {
         s[i] = this->data[i] * a.data[i];
@@ -259,6 +301,9 @@ ndarray<T> ndarray<T>::operator*(const ndarray<T> a) const {
 
 template <typename T>
 ndarray<T>& ndarray<T>::operator*=(const ndarray<T> &a) {
+    ASSERT_CONDITION(a.size == this->size && a.shape == this->shape,
+    "Only arrays with same shape and size can be multiplied");
+
     for(unsigned i = 0; i < this->size; i++) {
         this->data[i] *= a.data[i];
     }
@@ -277,6 +322,9 @@ ndarray<T>& ndarray<T>::operator*=(const T &v) {
 
 template <typename T>
 ndarray<T> ndarray<T>::operator/(const ndarray<T> a) const {
+    ASSERT_CONDITION(a.size == this->size && a.shape == this->shape,
+    "Only arrays with same shape and size can be divided");
+
     T *s = new T[this->size];
     for(unsigned i = 0; i < a.size; i++) {
         s[i] = this->data[i] / a.data[i];
@@ -286,6 +334,9 @@ ndarray<T> ndarray<T>::operator/(const ndarray<T> a) const {
 
 template <typename T>
 ndarray<T>& ndarray<T>::operator/=(const ndarray<T> &a) {
+    ASSERT_CONDITION(a.size == this->size && a.shape == this->shape,
+    "Only arrays with same shape and size can be divided");
+
     for(unsigned i = 0; i < this->size; i++) {
         this->data[i] /= a.data[i];
     }
@@ -303,41 +354,65 @@ ndarray<T>& ndarray<T>::operator/=(const T &v) {
 }
 
 template <typename T>
-void ndarray<T>::generate_indices(
-    vector<unsigned> shape,
-    vector<unsigned> &acc,
-    vector<vector<unsigned>> &result
-) const {
+void ndarray<T>::generate_indices(vector<unsigned> shp, vector<unsigned> &acc, vector<vector<unsigned>> &result) const {
+    /*
+     * For given:
+     *  - shape, [sh] (s1, s2, ... ,sN)
+     *  - empty accumulator, [acc] (0_1, 0_2, ... 0_N)
+     *  - empty result matrix, [result]
+     *
+     * this function generates result matrix [result] having P index tuples
+     *      (i_11, i_12, ..., i_1N)
+     *      (i_21, i_22, ..., i_2N)
+     *              .
+     *              .
+     *              .
+     *      (i_P1, i_P2, ..., i_PN)
+     *
+     * where P = s1 * s2 * .. * sN
+     *
+     * returned matrix is equivalent to sN number of nester loops
+     *
+     *  for(int i1 = 0; i1 < s1; i1++)
+     *      for(int i2 = 0; i2 < s2; i2++)
+     *          .
+     *          .
+     *          .
+     *          for(int iN = 0; iN < sN; iN++)
+     *              add((i1, i2, ..., iN)
+     *
+     */
+
     bool terminate = true;
-    int dim = (int)shape.size();
-    for(int i = 0; i < dim - 1; i++) {
-        if(acc[i] != shape[i] - 1) {
+    int d = (int)shp.size();
+    for(int i = 0; i < d - 1; i++) {
+        if(acc[i] != shp[i] - 1) {
             terminate = false;
             break;
         }
     }
-    terminate = terminate && (acc[dim - 1] == shape[dim - 1]);
+    terminate = terminate && (acc[d - 1] == shp[d - 1]);
 
     if(terminate) {
         return;
     } else {
-        for(int i = dim - 1; i != 0; i--) {
-            if(acc[i] == shape[i]) {
+        for(int i = d - 1; i != 0; i--) {
+            if(acc[i] == shp[i]) {
                 acc[i] = 0;
                 acc[i - 1] += 1;
             }
         }
 
         vector<unsigned> indices;
-        indices.reserve(dim);
-        for(int i = 0; i < dim; i++) {
+        indices.reserve(d);
+        for(int i = 0; i < d; i++) {
             indices.push_back(acc[i]);
         }
         result.push_back(indices);
         indices.clear();
 
-        acc[dim - 1] += 1;
-        generate_indices(shape, acc, result);
+        acc[d - 1] += 1;
+        generate_indices(shp, acc, result);
     }
 }
 
@@ -389,7 +464,7 @@ ostream& operator<<(ostream &os, const ndarray<T> &b) {
     } else if (dim == 3) {
         os << "[\n";
         for(unsigned i = 0; i < shape[0]; i++) {
-            ndarray<T> curr_b = b.view({i});
+            ndarray<T> curr_b = b.at({i});
             os << print_2d(curr_b, 1) << endl;
         }
         os << "]";
@@ -415,7 +490,7 @@ ostream& operator<<(ostream &os, const ndarray<T> &b) {
             next_indices = i != all_matrix_indices.size() - 1 ?
                 all_matrix_indices[i + 1] : all_matrix_indices[i];
 
-            ndarray<T> curr_b = b.view({curr_indices});
+            ndarray<T> curr_b = b.at({curr_indices});
 
             open_brackets(os, i, curr_indices, prev_indices, next_indices);
             os << print_2d(curr_b, dim - 2) << endl;
@@ -441,8 +516,6 @@ ostream& operator<<(ostream &os, const ndarray<T> &b) {
 
     return os;
 }
-
-
 
 
 /* template declarations */

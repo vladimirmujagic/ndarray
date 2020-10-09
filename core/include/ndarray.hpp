@@ -4,14 +4,14 @@
 #include <vector>
 
 #ifndef NDEBUG
-#   define M_Assert(Expr, Msg) \
-    __M_Assert(#Expr, Expr, __FILE__, __LINE__, Msg)
+#   define ASSERT_CONDITION(Expr, Msg) \
+    M_ASSERT(#Expr, Expr, __FILE__, __LINE__, Msg)
 #else
-#   define M_Assert(Expr, Msg) ;
+#   define ASSERT_CONDITION(Expr, Msg) ;
 #endif
 
 
-void __M_Assert(const char* expr_str, bool expr, const char* file, int line, const char* msg);
+void M_ASSERT(const char* expr_str, bool expr, const char* file, int line, const char* msg);
 
 template<typename T>
 class ndarray {
@@ -28,11 +28,11 @@ public:
     ndarray(const std::vector<unsigned> &shape);
     ndarray(T *data, const std::vector<unsigned> &shape);
 
-    /* View sub array with index (i, j, k, ...) */
-    ndarray<T> view(const std::vector<unsigned> &indices) const;
+    /* View sub array at index (i, j, k, ...) */
+    ndarray<T> at(const std::vector<unsigned> &indices) const;
 
-    /* Copy sub array with index (i, j, k, ...) */
-    ndarray<T> copy(const std::vector<unsigned> &indices) const;
+    /* Copy sub array at index (i, j, k, ...) */
+    ndarray<T> copy_at(const std::vector<unsigned> &indices) const;
 
     void reshape(const std::vector<unsigned> &new_shape);
 
@@ -54,12 +54,11 @@ public:
     ndarray<T>  operator/(ndarray<T> a) const;
     ndarray<T>& operator/=(const ndarray<T> &a);
     ndarray<T>& operator/=(const T &v);
-
     template<typename U>
     friend std::ostream& operator<<(std::ostream &os, const ndarray<U> &a);
     
     void generate_indices(
-        std::vector<unsigned> shape,
+        std::vector<unsigned> shp,
         std::vector<unsigned> &acc,
         std::vector<std::vector<unsigned>> &result
     ) const;
