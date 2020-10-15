@@ -1,9 +1,7 @@
 #include <iostream>
-#include <sstream>
 #include <string>
 
-#include "../include/ndarray.hpp"
-#include "../include/utils.hpp"
+#include "../include/ndarray_utils.hpp"
 
 using namespace std;
 
@@ -69,3 +67,13 @@ void close_brackets(
     }
 }
 
+void print_vector(const std::vector<unsigned> &v) {
+    cout << "[";
+    for(unsigned i = 0; i < v.size(); i++) {
+        if(i == v.size() - 1)
+            cout << v[i];
+        else
+            cout << v[i] << ", ";
+    }
+    cout << "]";
+}

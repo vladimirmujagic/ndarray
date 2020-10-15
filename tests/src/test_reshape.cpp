@@ -27,7 +27,7 @@ SCENARIO( "ndarray reshape", "[ndarray]" ) {
             THEN("proper dimension new shape and shape products are assigned") {
                 REQUIRE(a.shape == vector<unsigned> {2, 2, 5});
                 REQUIRE(a.dim == 3);
-                REQUIRE(a.shape_products == vector<unsigned> {10, 5});
+                REQUIRE(a.strides == vector<unsigned> {10, 5});
             }
         }
     }

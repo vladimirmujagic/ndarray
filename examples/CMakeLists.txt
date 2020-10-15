@@ -47,3 +47,10 @@ target_link_libraries(example_operators ndarray::library)
 add_executable(example_reshape src/example_reshape.cpp)
 target_link_libraries(example_reshape ndarray::library)
 #########################################################################
+
+#########################################################################
+#        6. element wise                                                #
+#########################################################################
+add_executable(example_element_wise src/example_element_wise.cpp)
+target_link_libraries(example_element_wise ndarray::library)
+#########################################################################

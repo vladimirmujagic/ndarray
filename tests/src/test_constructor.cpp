@@ -24,7 +24,7 @@ SCENARIO( "ndarray construction", "[ndarray]" ) {
 
                 REQUIRE(a1d.dim == 1);
                 REQUIRE(a1d.size == 3);
-                REQUIRE(a1d.shape_products == vector<unsigned >{3});
+                REQUIRE(a1d.strides == vector<unsigned >{3});
                 REQUIRE(assigned_data == given_data);
             }
         }
@@ -40,7 +40,7 @@ SCENARIO( "ndarray construction", "[ndarray]" ) {
 
                 REQUIRE(a2d.dim == 2);
                 REQUIRE(a2d.size == 16);
-                REQUIRE(a2d.shape_products == vector<unsigned >{4});
+                REQUIRE(a2d.strides == vector<unsigned >{4});
                 REQUIRE(assigned_data == given_data);
             }
         }
@@ -56,7 +56,7 @@ SCENARIO( "ndarray construction", "[ndarray]" ) {
 
                 REQUIRE(a3d.dim == 3);
                 REQUIRE(a3d.size == 30);
-                REQUIRE(a3d.shape_products == vector<unsigned >{10, 5});
+                REQUIRE(a3d.strides == vector<unsigned >{10, 5});
                 REQUIRE(assigned_data == given_data);
             }
         }
@@ -72,7 +72,7 @@ SCENARIO( "ndarray construction", "[ndarray]" ) {
 
                 REQUIRE(a4d.dim == 4);
                 REQUIRE(a4d.size == 120);
-                REQUIRE(a4d.shape_products == vector<unsigned >{30, 10, 5});
+                REQUIRE(a4d.strides == vector<unsigned >{30, 10, 5});
                 REQUIRE(assigned_data == given_data);
             }
         }

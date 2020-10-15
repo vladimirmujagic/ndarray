@@ -4,7 +4,8 @@ project(libndarray)
 
 set(SOURCES
     src/ndarray.cpp
-    src/utils.cpp
+    src/ndarray_utils.cpp
+    src/ndarray_validation.cpp
 )
 
 add_library(ndarray SHARED ${SOURCES})

@@ -22,3 +22,5 @@ void close_brackets(
     const std::vector<unsigned> &next_indices
 );
 
+void print_vector(const std::vector<unsigned> &v);
+
