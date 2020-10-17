@@ -1,13 +1,15 @@
 #include <iostream>
 
-#include "../../core/include/ndarray.hpp"
+#include "../../../../core/include/ndarray.hpp"
+#include "../../../../tests/include/data_generator.hpp"
+
 
 using namespace std;
 
 
-int main(int argc, char **argv) {
-    float data[20] = {0.};
-    for(unsigned i = 0; i < 20; i++) { data[i] = (float)i; }
+int main() {
+    DataGenerator dg;
+    float *data = dg.arange(20);
 
     ndarray<float> a(data, {5, 2, 2});
     cout << a << endl;

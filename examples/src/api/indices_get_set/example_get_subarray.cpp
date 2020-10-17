@@ -1,23 +1,16 @@
 #include <iostream>
 
-#include "../../core/include/ndarray.hpp"
 
-#define randf(x) static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / x))
+#include "../../../../core/include/ndarray.hpp"
+#include "../../../../tests/include/data_generator.hpp"
 
-float * random_data(unsigned size, unsigned rand_max){
-    float *data = new float[size];
-    for(unsigned i = 0; i < size; i++) {
-        data[i] = randf(rand_max);
-    }
-
-    return data;
-}
 
 using namespace std;
 
 
-int main(int argc, char **argv) {
-    float *data = random_data(120, 1);
+int main() {
+    DataGenerator dg;
+    float *data = dg.arange(120);
 
     cout << "Create ndarray" << endl;
     ndarray<float> a(data, {6, 2, 10});

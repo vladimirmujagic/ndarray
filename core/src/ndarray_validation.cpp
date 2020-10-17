@@ -3,9 +3,9 @@
 #include <vector>
 
 #include "../include/ndarray_validation.hpp"
-#include "../include/ndarray_utils.hpp"
 
 using namespace std;
+
 
 void M_ASSERT(const char* expr_str, bool expr, const char* file, int line, const char* msg) {
     if (!expr) {
