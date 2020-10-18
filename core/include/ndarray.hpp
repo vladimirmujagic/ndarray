@@ -16,12 +16,12 @@ class ndarray {
         unsigned dim;
 
     private:
+        void _set_strides();
         void _cartesian_product(
             std::vector<unsigned> shp,
             std::vector<unsigned> &acc,
             std::vector<std::vector<unsigned>> &result
         ) const;
-
         unsigned   _get_flat_index(const std::vector<unsigned> &indices) const;
         ndarray<T> _element_wise(const ndarray<T> &a, const ndarray<T> &b, std::string op) const;
 
@@ -30,15 +30,16 @@ class ndarray {
         *                    Construction / Destruction                          *
         *************************************************************************/
         ndarray();
-//        ~ndarray();
+        // ~ndarray();
         ndarray(const std::vector<unsigned> &shape);
+        ndarray(const T &v, const std::vector<unsigned> &shape);
         ndarray(T *data, const std::vector<unsigned> &shape);
         /*************************************************************************/
 
         /*************************************************************************
-        *                       Attributes Get / set                             *
+        *                       Attributes Get / Set                             *
         *************************************************************************/
-        T* data();
+        T*                    data();
         std::vector<unsigned> strides();
         /************************************************************************/
 

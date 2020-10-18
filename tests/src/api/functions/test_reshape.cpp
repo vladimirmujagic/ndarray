@@ -9,12 +9,18 @@
 
 using namespace std;
 
+DataGenerator data_generator;
+
 
 SCENARIO( "ndarray reshape", "[ndarray]" ) {
     GIVEN("3d array with shape (5, 2, 2)") {
+        ndarray<float> a(1., {5, 2, 2});
         WHEN("array is reshaped to (2, 2, 5)") {
-            THEN("proper dimension new shape and shape products are assigned") {
-                REQUIRE(true == true);
+            a.reshape({2, 2, 5});
+            THEN("proper dimension new shape and strides are assigned") {
+                REQUIRE(a.dim == 3);
+                REQUIRE(a.shape == vector<unsigned>{2, 2, 5});
+                REQUIRE(a.strides() == vector<unsigned>{10, 5});
             }
         }
     }

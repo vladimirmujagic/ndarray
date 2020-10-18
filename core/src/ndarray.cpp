@@ -1,13 +1,13 @@
 #include <functional>
+#include <algorithm>
 #include <numeric>
 #include <sstream>
-#include <string>
 #include <vector>
-#include <algorithm>
 
-#include "../include/ndarray_validation.hpp"
 #include "../include/ndarray.hpp"
 #include "../include/ndarray_utils.hpp"
+#include "../include/ndarray_validation.hpp"
+
 
 using namespace std;
 
@@ -18,55 +18,55 @@ using namespace std;
 template <typename T>
 ndarray<T>::ndarray() {}
 
-//template <typename T>
-//ndarray<T>::~ndarray() {
-//    delete data_;
-//}
-
 template <typename T>
 ndarray<T>::ndarray(const std::vector<unsigned> &shape)
     : shape(shape)
 {
-    ASSERT_CONDITION(!shape.empty(),
-    "shape is not allowed to be empty");
-    const unsigned shape_product = accumulate(shape.begin(), shape.end(), 1, multiplies<unsigned>());
-    this->size = shape_product;
-    this->dim = shape.size();
-    this->data_ = new T[shape_product];
+    ASSERT_CONDITION(!shape.empty(),"shape is not allowed to be empty");
 
-    if(this->dim > 1) {
-        vector<unsigned> subps;
-        for(int i = 1; i < this->dim; i++) {
-            unsigned sp = accumulate(shape.begin() + i, shape.end(), 1, multiplies<unsigned>());
-            subps.push_back(sp);
-        }
-       this->strides_ = subps;
-    } 
-    else
-        this->strides_ = {shape[0]};
+    const unsigned shape_product = accumulate(shape.begin(), shape.end(), 1, multiplies<unsigned>());
+    size  = shape_product;
+    dim   = shape.size();
+    data_ = new T[shape_product];
+    for(unsigned i = 0; i < size; i++) {
+        data_[i] = 0;
+    }
+
+    _set_strides();
+}
+
+template <typename T>
+ndarray<T>::ndarray(const T &v, const std::vector<unsigned> &shape)
+        : shape(shape)
+{
+    ASSERT_CONDITION(!shape.empty(),"shape is not allowed to be empty");
+
+    const unsigned shape_product = accumulate(shape.begin(), shape.end(), 1, multiplies<unsigned>());
+    size  = shape_product;
+    dim   = shape.size();
+    data_ = new T[shape_product];
+    for(unsigned i = 0; i < size; i++) {
+        data_[i] = v;
+    }
+
+    _set_strides();
 }
 
 template <typename T>
 ndarray<T>::ndarray(T *data, const std::vector<unsigned> &shape)
     : shape(shape), data_(data)
 {
-    ASSERT_CONDITION(!shape.empty(),
-    "shape is not allowed to be empty");
+    ASSERT_CONDITION(!shape.empty(),"shape is not allowed to be empty");
 
     const unsigned shape_product = accumulate(shape.begin(), shape.end(), 1, multiplies<unsigned>());
-    this->size = shape_product;
-    this->dim = shape.size();
-
-    if(this->dim > 1) {
-        vector<unsigned> subps;
-        for(int i = 1; i < this->dim; i++) {
-            unsigned sp = std::accumulate(shape.begin() + i, shape.end(), 1, std::multiplies<unsigned>());
-            subps.push_back(sp);
-        }
-        this->strides_ = subps;
+    size = shape_product;
+    dim = shape.size();
+    data_ = new T[shape_product];
+    for(unsigned i = 0; i < size; i++) {
+        data_[i] = data[i];
     }
-    else
-        this->strides_ = {shape[0]};
+
+    _set_strides();
 }
 /**********************************************************************************************************************/
 
@@ -89,6 +89,20 @@ std::vector<unsigned> ndarray<T>::strides() {
 /***********************************************************************************************************************
  *                                      Internal core functions                                                        *
  **********************************************************************************************************************/
+template <typename T>
+void ndarray<T>::_set_strides() {
+    if(dim > 1) {
+        vector<unsigned> subps;
+        for(int i = 1; i < this->dim; i++) {
+            unsigned sp = accumulate(shape.begin() + i, shape.end(), 1, multiplies<unsigned>());
+            subps.push_back(sp);
+        }
+        strides_ = subps;
+    }
+    else
+        strides_ = {1};
+}
+
 template <typename T>
 void ndarray<T>::_cartesian_product(vector<unsigned> sets, vector<unsigned> &acc, vector<vector<unsigned>> &cp) const {
     /*
@@ -296,7 +310,7 @@ ndarray<T> ndarray<T>::_element_wise(const ndarray<T> &a, const ndarray<T> &b, s
 
 
 /***********************************************************************************************************************
- *                                      Internal core functions                                                        *
+ *                                         API functions                                                              *
  **********************************************************************************************************************/
 template <typename T>
 void ndarray<T>::reshape(const std::vector<unsigned> &new_shape) {
