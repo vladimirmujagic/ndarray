@@ -18,10 +18,10 @@ using namespace std;
 template <typename T>
 ndarray<T>::ndarray() {}
 
-//template <typename T>
-//ndarray<T>::~ndarray() {
-//    delete[] data_;
-//}
+template <typename T>
+ndarray<T>::~ndarray() {
+    delete[] data_;
+}
 
 template <typename T>
 ndarray<T>::ndarray(const vector<unsigned> &shape)
@@ -68,44 +68,44 @@ ndarray<T>::ndarray(T *data, const vector<unsigned> &shape)
     const unsigned shape_product = accumulate(shape.begin(), shape.end(), 1, multiplies<unsigned>());
     size = shape_product;
     dim = shape.size();
-//    T* data_copy = new T[shape_product];
-//    for(unsigned i = 0; i < size; i++) {
-//        data_copy[i] = data[i];
-//    }
-//    data_ = data_copy;
+    T* data_copy = new T[shape_product];
+    for(unsigned i = 0; i < size; i++) {
+        data_copy[i] = data[i];
+    }
+    data_ = data_copy;
 
     _set_strides();
 }
 
-//template <typename T>
-//ndarray<T>& ndarray<T>::operator=(const ndarray<T> &a) {
-//    this->dim = a.dim;
-//    this->shape = a.shape;
-//    this->strides_ = a.strides_;
-//    this->size = a.size;
-//
-//    T* data_copy = new T[a.size];
-//    for(unsigned i = 0; i < a.size; i ++) {
-//        data_copy[i] = a.data_[i];
-//    }
-//    this->data_ = data_copy;
-//
-//    return *this;
-//}
-//
-//template <typename T>
-//ndarray<T>::ndarray(const ndarray<T> &copy) {
-//    this->dim = copy.dim;
-//    this->shape = copy.shape;
-//    this->strides_ = copy.strides_;
-//    this->size = copy.size;
-//
-//    T* data_copy = new T[copy.size];
-//    for(unsigned i = 0; i < copy.size; i ++) {
-//        data_copy[i] = copy.data_[i];
-//    }
-//    this->data_ = data_copy;
-//}
+template <typename T>
+ndarray<T>& ndarray<T>::operator=(const ndarray<T> &a) {
+    this->dim = a.dim;
+    this->shape = a.shape;
+    this->strides_ = a.strides_;
+    this->size = a.size;
+
+    T* data_copy = new T[a.size];
+    for(unsigned i = 0; i < a.size; i ++) {
+        data_copy[i] = a.data_[i];
+    }
+    this->data_ = data_copy;
+
+    return *this;
+}
+
+template <typename T>
+ndarray<T>::ndarray(const ndarray<T> &copy) {
+    this->dim = copy.dim;
+    this->shape = copy.shape;
+    this->strides_ = copy.strides_;
+    this->size = copy.size;
+
+    T* data_copy = new T[copy.size];
+    for(unsigned i = 0; i < copy.size; i ++) {
+        data_copy[i] = copy.data_[i];
+    }
+    this->data_ = data_copy;
+}
 /**********************************************************************************************************************/
 
 
@@ -237,7 +237,6 @@ vector<unsigned>  ndarray<T>::_next_cartesian_tuple(vector<unsigned> acc, vector
         }
     }
 
-
     return acc;
 }
 
@@ -247,7 +246,7 @@ unsigned ndarray<T>::_get_flat_index(const vector<unsigned> &indices) const {
     unsigned index = indices[0];
 
     ASSERT_CONDITION(indices_size == this->shape.size(),
-                     "Index access requires same number of indices as shape size, use view for sub-arrays");
+    "Index access requires same number of indices as shape size, use view for sub-arrays");
     ASSERT_INDICES_IN_RANGE(this->shape, indices);
 
     if(indices_size == 1)
@@ -266,17 +265,52 @@ unsigned ndarray<T>::_get_flat_index(const vector<unsigned> &indices) const {
 }
 
 template <typename T>
-ndarray<T> ndarray<T>::_element_wise(const ndarray<T> &a, const ndarray<T> &b, string op) const {
+T ndarray<T>::_binary_operation(const T &a, const T &b, std::string op) const {
+        // TODO ASSERT
+        // TODO IMPROVE
+        T c;
+        if(!op.compare("+"))
+            c = a + b;
+        else if(!op.compare("-"))
+            c = a - b;
+        else if(!op.compare("*"))
+            c = a * b;
+        else if(!op.compare("/"))
+            c = a / b;
+        else if(!op.compare("=="))
+            c = a == b;
+        else if(!op.compare("!="))
+            c = a != b;
+        else if(!op.compare(">"))
+            c = a > b;
+        else if(!op.compare(">="))
+            c = a >= b;
+        else if(!op.compare("<"))
+            c = a < b;
+        else if(!op.compare("<="))
+            c = a > b;
+        else
+            throw "Unknow operation";
+
+        return c;
+}
+
+template <typename T>
+ndarray<T> ndarray<T>::_element_wise_aligned(const ndarray<T> &a, const ndarray<T> &b, std::string op) const {
+    T *c_data = new T[a.size];
+    for (unsigned i = 0; i < a.size; i++) {
+        c_data[i] = _binary_operation(a.data_[i], b.data_[i], op);
+    }
+
+    return ndarray<T>(c_data, a.shape);
+}
+
+template <typename T>
+ndarray<T> ndarray<T>::_element_wise_broadcast(const ndarray<T> &a, const ndarray<T> &b, string op) const {
     ASSERT_SHAPES_MATCH(a.shape, b.shape);
 
     if (a.dim == b.dim && a.shape == b.shape) {
-        T *c_data = new T[a.size];
-        for (unsigned i = 0; i < a.size; i++) {
-            // TODO
-            c_data[i] = a.data_[i] + b.data_[i];
-        }
-
-        return ndarray<T>(c_data, a.shape);
+        return _element_wise_aligned(a, b, op);
     }
 
     vector<unsigned> bigger_shape, smaller_shape, final_shape;
@@ -342,30 +376,8 @@ ndarray<T> ndarray<T>::_element_wise(const ndarray<T> &a, const ndarray<T> &b, s
         T a_b_result;
         T val_aligned_a = aligned_a.at(aligned_a_indices);
         T val_aligned_b = aligned_b.at(aligned_b_indices);
-
-        if(!op.compare("+"))
-            a_b_result = val_aligned_a + val_aligned_a;
-        if(!op.compare("-"))
-            a_b_result = val_aligned_a - val_aligned_b;
-        if(!op.compare("*"))
-            a_b_result = val_aligned_a * val_aligned_b;
-        if(!op.compare("/"))
-            a_b_result = val_aligned_a / val_aligned_b;
-
-        if(!op.compare("=="))
-            a_b_result = val_aligned_a == val_aligned_b;
-        if(!op.compare("!="))
-            a_b_result = val_aligned_a != val_aligned_b;
-        if(!op.compare(">"))
-            a_b_result = val_aligned_a > val_aligned_b;
-        if(!op.compare(">="))
-            a_b_result = val_aligned_a >= val_aligned_b;
-        if(!op.compare("<"))
-            a_b_result = val_aligned_a < val_aligned_b;
-        if(!op.compare("<="))
-            a_b_result = val_aligned_a > val_aligned_b;
-
-        c.at(result_indices) = a_b_result;
+        
+        c.at(result_indices) = _binary_operation(val_aligned_a, val_aligned_b, op);
     }
 
     return c;
@@ -381,7 +393,7 @@ void ndarray<T>::reshape(const vector<unsigned> &new_shape) {
     unsigned p = accumulate(new_shape.begin(), new_shape.end(), 1, multiplies<unsigned>());
 
     ASSERT_CONDITION(this->size == p,
-                     "When reshaping, new shape product must be equal to target ndarray size");
+    "When reshaping, new shape product must be equal to target ndarray size");
 
     this->shape = new_shape;
     this->dim = new_shape.size();
@@ -488,12 +500,12 @@ ndarray<T> ndarray<T>::copy_subarray_at(const vector<unsigned> &indices) const {
  **********************************************************************************************************************/
 template <typename T>
 ndarray<T> ndarray<T>::operator+(const ndarray<T> a) const {
-    return this->_element_wise(*this, a, "+");
+    return this->_element_wise_broadcast(*this, a, "+");
 }
 
 template <typename T>
 ndarray<T>& ndarray<T>::operator+=(const ndarray<T> &a) {
-    *this = this->_element_wise(*this, a, "+");
+    *this = this->_element_wise_broadcast(*this, a, "+");
 
     return *this;
 }
@@ -509,12 +521,12 @@ ndarray<T>& ndarray<T>::operator+=(const T &v) {
 
 template <typename T>
 ndarray<T> ndarray<T>::operator-(const ndarray<T> a) const {
-    return this->_element_wise(*this, a, "-");
+    return this->_element_wise_broadcast(*this, a, "-");
 }
 
 template <typename T>
 ndarray<T>& ndarray<T>::operator-=(const ndarray<T> &a) {
-    *this = this->_element_wise(*this, a, "-");
+    *this = this->_element_wise_broadcast(*this, a, "-");
 
     return *this;
 }
@@ -530,12 +542,12 @@ ndarray<T>& ndarray<T>::operator-=(const T &v) {
 
 template <typename T>
 ndarray<T> ndarray<T>::operator*(const ndarray<T> a) const {
-    return this->_element_wise(*this, a, "*");
+    return this->_element_wise_broadcast(*this, a, "*");
 }
 
 template <typename T>
 ndarray<T>& ndarray<T>::operator*=(const ndarray<T> &a) {
-    *this = this->_element_wise(*this, a, "*");
+    *this = this->_element_wise_broadcast(*this, a, "*");
 
     return *this;
 }
@@ -551,12 +563,12 @@ ndarray<T>& ndarray<T>::operator*=(const T &v) {
 
 template <typename T>
 ndarray<T> ndarray<T>::operator/(const ndarray<T> a) const {
-    return this->_element_wise(*this, a, "/");
+    return this->_element_wise_broadcast(*this, a, "/");
 }
 
 template <typename T>
 ndarray<T>& ndarray<T>::operator/=(const ndarray<T> &a) {
-    *this = this->_element_wise(*this, a, "/");
+    *this = this->_element_wise_broadcast(*this, a, "/");
 
     return *this;
 }
@@ -592,7 +604,7 @@ bool ndarray<T>::equals(const ndarray<T> &a) const {
 
 template <typename T>
 ndarray<T> ndarray<T>::operator==(const ndarray<T> &a) const {
-    return this->_element_wise(*this, a, "==");
+    return this->_element_wise_broadcast(*this, a, "==");
 }
 
 template <typename T>
@@ -607,7 +619,7 @@ ndarray<T> ndarray<T>::operator==(const T &s) const {
 
 template <typename T>
 ndarray<T> ndarray<T>::operator!=(const ndarray<T> &a) const {
-    return this->_element_wise(*this, a, "!=");
+    return this->_element_wise_broadcast(*this, a, "!=");
 }
 
 template <typename T>
@@ -622,22 +634,22 @@ ndarray<T> ndarray<T>::operator!=(const T &s) const {
 
 template <typename T>
 ndarray<T> ndarray<T>::operator>(const ndarray<T> &a) const {
-    return this->_element_wise(*this, a, ">");
+    return this->_element_wise_broadcast(*this, a, ">");
 }
 
 template <typename T>
-ndarray<T> ndarray<T>::operator>(const T &s) const {
-    T *r = new T[this->size];
+ndarray<bool> ndarray<T>::operator>(const T &s) const {
+    bool *r = new bool[this->size];
     for(unsigned i = 0; i < this->size; i++) {
         r[i] = this->data_[i] > s;
     }
 
-    return ndarray<T>(r, this->shape);
+    return ndarray<bool>(r, this->shape);
 }
 
 template <typename T>
 ndarray<T> ndarray<T>::operator>=(const ndarray<T> &a) const {
-    return this->_element_wise(*this, a, ">=");
+    return this->_element_wise_broadcast(*this, a, ">=");
 }
 
 template <typename T>
@@ -652,7 +664,7 @@ ndarray<T> ndarray<T>::operator>=(const T &s) const {
 
 template <typename T>
 ndarray<T> ndarray<T>::operator<(const ndarray<T> &a) const {
-    return this->_element_wise(*this, a, "<");
+    return this->_element_wise_broadcast(*this, a, "<");
 }
 
 template <typename T>
@@ -667,7 +679,7 @@ ndarray<T> ndarray<T>::operator<(const T &s) const {
 
 template <typename T>
 ndarray<T> ndarray<T>::operator<=(const ndarray<T> &a) const {
-    return this->_element_wise(*this, a, "<=");
+    return this->_element_wise_broadcast(*this, a, "<=");
 }
 
 template <typename T>
@@ -795,6 +807,7 @@ template class ndarray<float>;
 template class ndarray<bool>;
 
 template ostream& operator<< <float>(ostream&, const ndarray<float>&);
+template ostream& operator<< <bool>(ostream&, const ndarray<bool>&);
 
 template float& ndarray<float>::operator()<int>(int);
 template float& ndarray<float>::operator()<int, int>(int, int);
