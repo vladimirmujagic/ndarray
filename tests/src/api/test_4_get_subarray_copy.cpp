@@ -1,20 +1,18 @@
 #define CATCH_CONFIG_MAIN
+#include "../../catch2/catch.hpp"
 
 #include <vector>
 
-#include "../../../catch2/catch.hpp"
-
-#include "../../../../core/include/ndarray.hpp"
-#include "../../../include/data_generator.hpp"
-
+#include "../../../core/include/ndarray.hpp"
+#include "../../include/data_generator.hpp"
 
 using namespace std;
 
 
-SCENARIO( "ndarray view", "[ndarray]" ) {
+SCENARIO( "ndarray copy", "[ndarray]" ) {
     GIVEN("2d array and index i") {
         WHEN("array is viewed at index i") {
-            THEN("1d array is returned") {
+            THEN("1d array copy is returned") {
                 REQUIRE(true == true);
             }
         }
@@ -22,9 +20,10 @@ SCENARIO( "ndarray view", "[ndarray]" ) {
 
     GIVEN("3d array and index i") {
         WHEN("array is viewed at index i") {
-            THEN("2d array is returned") {
+            THEN("2d array copy is returned") {
                 REQUIRE(true == true);
             }
         }
     }
 }
+

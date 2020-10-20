@@ -1,6 +1,6 @@
 #include <iostream>
 
-#include "../../../../core/include/ndarray.hpp"
+#include "../../../core/include/ndarray.hpp"
 
 using namespace std;
 

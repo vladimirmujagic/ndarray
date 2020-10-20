@@ -1,10 +1,10 @@
 #define CATCH_CONFIG_MAIN
 #include <vector>
 
-#include "../../../catch2/catch.hpp"
+#include "../../catch2/catch.hpp"
 
-#include "../../../../core/include/ndarray.hpp"
-#include "../../../include/data_generator.hpp"
+#include "../../../core/include/ndarray.hpp"
+#include "../../include/data_generator.hpp"
 
 
 using namespace std;
@@ -12,7 +12,7 @@ using namespace std;
 DataGenerator data_generator;
 
 
-SCENARIO( "ndarray construction  - fill 0", "[ndarray]" ) {
+SCENARIO( "ndarray constructor - fill 0", "[ndarray]" ) {
     GIVEN("1d shape") {
         vector<unsigned> shape = {10};
         WHEN("1d ndarray is constructed") {
@@ -83,7 +83,7 @@ SCENARIO( "ndarray construction  - fill 0", "[ndarray]" ) {
 }
 
 
-SCENARIO( "ndarray construction - fill with value", "[ndarray]" ) {
+SCENARIO( "ndarray constructor - fill with value", "[ndarray]" ) {
     GIVEN("1d shape and value 1") {
         vector<unsigned> shape = {10};
         float v = 1.;
@@ -107,6 +107,7 @@ SCENARIO( "ndarray construction - fill with value", "[ndarray]" ) {
         float v = 2.;
         WHEN("2d ndarray is constructed") {
             ndarray<float> a(v, shape);
+            cout << a << endl;
             THEN("data is set to 0, dimension, size and strides are calculated") {
                 REQUIRE(a.dim == 2);
                 REQUIRE(a.size == 25);
@@ -158,7 +159,7 @@ SCENARIO( "ndarray construction - fill with value", "[ndarray]" ) {
 }
 
 
-SCENARIO( "ndarray construction with existing data", "[ndarray]" ) {
+SCENARIO( "ndarray constructor with existing data", "[ndarray]" ) {
     GIVEN( "1d data stored as 1d array and its shape" ) {
         float *data = data_generator.arange(5);
         vector<unsigned> shape = {5};
@@ -218,6 +219,7 @@ SCENARIO( "ndarray construction with existing data", "[ndarray]" ) {
         vector<unsigned> shape = {2, 2, 2, 2};
         WHEN("ndarray is constructed") {
             ndarray<float> a(data, shape);
+            cout << a << endl;
             THEN("data is assigned, dimension, size, strides are calculated") {
                 REQUIRE(a.dim == 4);
                 REQUIRE(a.size == 16);

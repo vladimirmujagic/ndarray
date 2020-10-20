@@ -18,8 +18,13 @@ using namespace std;
 template <typename T>
 ndarray<T>::ndarray() {}
 
+//template <typename T>
+//ndarray<T>::~ndarray() {
+//    delete[] data_;
+//}
+
 template <typename T>
-ndarray<T>::ndarray(const std::vector<unsigned> &shape)
+ndarray<T>::ndarray(const vector<unsigned> &shape)
     : shape(shape)
 {
     ASSERT_CONDITION(!shape.empty(),"shape is not allowed to be empty");
@@ -27,16 +32,17 @@ ndarray<T>::ndarray(const std::vector<unsigned> &shape)
     const unsigned shape_product = accumulate(shape.begin(), shape.end(), 1, multiplies<unsigned>());
     size  = shape_product;
     dim   = shape.size();
-    data_ = new T[shape_product];
+    T *data = new T[shape_product];
     for(unsigned i = 0; i < size; i++) {
-        data_[i] = 0;
+        data[i] = 0;
     }
+    data_ = data;
 
     _set_strides();
 }
 
 template <typename T>
-ndarray<T>::ndarray(const T &v, const std::vector<unsigned> &shape)
+ndarray<T>::ndarray(const T &v, const vector<unsigned> &shape)
         : shape(shape)
 {
     ASSERT_CONDITION(!shape.empty(),"shape is not allowed to be empty");
@@ -44,16 +50,17 @@ ndarray<T>::ndarray(const T &v, const std::vector<unsigned> &shape)
     const unsigned shape_product = accumulate(shape.begin(), shape.end(), 1, multiplies<unsigned>());
     size  = shape_product;
     dim   = shape.size();
-    data_ = new T[shape_product];
+    T *data = new T[shape_product];
     for(unsigned i = 0; i < size; i++) {
-        data_[i] = v;
+        data[i] = v;
     }
+    data_ = data;
 
     _set_strides();
 }
 
 template <typename T>
-ndarray<T>::ndarray(T *data, const std::vector<unsigned> &shape)
+ndarray<T>::ndarray(T *data, const vector<unsigned> &shape)
     : shape(shape), data_(data)
 {
     ASSERT_CONDITION(!shape.empty(),"shape is not allowed to be empty");
@@ -61,13 +68,44 @@ ndarray<T>::ndarray(T *data, const std::vector<unsigned> &shape)
     const unsigned shape_product = accumulate(shape.begin(), shape.end(), 1, multiplies<unsigned>());
     size = shape_product;
     dim = shape.size();
-    data_ = new T[shape_product];
-    for(unsigned i = 0; i < size; i++) {
-        data_[i] = data[i];
-    }
+//    T* data_copy = new T[shape_product];
+//    for(unsigned i = 0; i < size; i++) {
+//        data_copy[i] = data[i];
+//    }
+//    data_ = data_copy;
 
     _set_strides();
 }
+
+//template <typename T>
+//ndarray<T>& ndarray<T>::operator=(const ndarray<T> &a) {
+//    this->dim = a.dim;
+//    this->shape = a.shape;
+//    this->strides_ = a.strides_;
+//    this->size = a.size;
+//
+//    T* data_copy = new T[a.size];
+//    for(unsigned i = 0; i < a.size; i ++) {
+//        data_copy[i] = a.data_[i];
+//    }
+//    this->data_ = data_copy;
+//
+//    return *this;
+//}
+//
+//template <typename T>
+//ndarray<T>::ndarray(const ndarray<T> &copy) {
+//    this->dim = copy.dim;
+//    this->shape = copy.shape;
+//    this->strides_ = copy.strides_;
+//    this->size = copy.size;
+//
+//    T* data_copy = new T[copy.size];
+//    for(unsigned i = 0; i < copy.size; i ++) {
+//        data_copy[i] = copy.data_[i];
+//    }
+//    this->data_ = data_copy;
+//}
 /**********************************************************************************************************************/
 
 
@@ -80,7 +118,7 @@ T* ndarray<T>::data() {
 };
 
 template <typename T>
-std::vector<unsigned> ndarray<T>::strides() {
+vector<unsigned> ndarray<T>::strides() {
     return strides_;
 };
 /**********************************************************************************************************************/
@@ -177,7 +215,34 @@ void ndarray<T>::_cartesian_product(vector<unsigned> sets, vector<unsigned> &acc
 }
 
 template<typename T>
-unsigned ndarray<T>::_get_flat_index(const std::vector<unsigned> &indices) const {
+vector<unsigned>  ndarray<T>::_next_cartesian_tuple(vector<unsigned> acc, vector<unsigned> sets) const {
+    bool terminate = true;
+    int d = (int)sets.size();
+    for(int i = 0; i < d - 1; i++) {
+        if(acc[i] != sets[i] - 1) {
+            terminate = false;
+            break;
+        }
+    }
+
+    if(terminate && acc[d-1] == sets[d-1] - 1)
+        throw StopIteration();
+
+    acc[d - 1] += 1;
+
+    for(int i = d - 1; i != 0; i--) {
+        if(acc[i] == sets[i]) {
+            acc[i] = 0;
+            acc[i-1] += 1;
+        }
+    }
+
+
+    return acc;
+}
+
+template<typename T>
+unsigned ndarray<T>::_get_flat_index(const vector<unsigned> &indices) const {
     unsigned indices_size = indices.size();
     unsigned index = indices[0];
 
@@ -204,7 +269,6 @@ template <typename T>
 ndarray<T> ndarray<T>::_element_wise(const ndarray<T> &a, const ndarray<T> &b, string op) const {
     ASSERT_SHAPES_MATCH(a.shape, b.shape);
 
-    // 1. Exactly the same shapes
     if (a.dim == b.dim && a.shape == b.shape) {
         T *c_data = new T[a.size];
         for (unsigned i = 0; i < a.size; i++) {
@@ -313,24 +377,15 @@ ndarray<T> ndarray<T>::_element_wise(const ndarray<T> &a, const ndarray<T> &b, s
  *                                         API functions                                                              *
  **********************************************************************************************************************/
 template <typename T>
-void ndarray<T>::reshape(const std::vector<unsigned> &new_shape) {
-    unsigned p = std::accumulate(new_shape.begin(), new_shape.end(), 1, std::multiplies<unsigned>());
+void ndarray<T>::reshape(const vector<unsigned> &new_shape) {
+    unsigned p = accumulate(new_shape.begin(), new_shape.end(), 1, multiplies<unsigned>());
 
     ASSERT_CONDITION(this->size == p,
                      "When reshaping, new shape product must be equal to target ndarray size");
 
     this->shape = new_shape;
     this->dim = new_shape.size();
-    if(new_shape.size() > 1) {
-        vector<unsigned> subps;
-        for(int i = 1; i < new_shape.size(); i++) {
-            unsigned sp = std::accumulate(new_shape.begin() + i, new_shape.end(), 1, std::multiplies<unsigned>());
-            subps.push_back(sp);
-        }
-        this->strides_ = subps;
-    }
-    else
-        this->strides_ = {new_shape[0]};
+    _set_strides();
 }
 /**********************************************************************************************************************/
 
@@ -357,21 +412,21 @@ T& ndarray<T>::operator()(A... indices) {
 }
 
 template<typename T>
-T ndarray<T>::at(const std::vector<unsigned> &indices) const {
+T ndarray<T>::at(const vector<unsigned> &indices) const {
     unsigned index = this->_get_flat_index(indices);
 
     return this->data_[index];
 }
 
 template<typename T>
-T& ndarray<T>::at(const std::vector<unsigned> &indices) {
+T& ndarray<T>::at(const vector<unsigned> &indices) {
     unsigned index = this->_get_flat_index(indices);
 
     return this->data_[index];
 }
 
 template <typename T>
-ndarray<T> ndarray<T>::subarray_at(const std::vector<unsigned> &indices) const {
+ndarray<T> ndarray<T>::subarray_at(const vector<unsigned> &indices) const {
     const unsigned indices_size = indices.size();
     const unsigned shape_size = this->shape.size();
 
@@ -398,7 +453,7 @@ ndarray<T> ndarray<T>::subarray_at(const std::vector<unsigned> &indices) const {
 }
 
 template <typename T>
-ndarray<T> ndarray<T>::copy_subarray_at(const std::vector<unsigned> &indices) const {
+ndarray<T> ndarray<T>::copy_subarray_at(const vector<unsigned> &indices) const {
     const unsigned indices_size = indices.size();
     const unsigned shape_size = this->shape.size();
 
@@ -421,7 +476,7 @@ ndarray<T> ndarray<T>::copy_subarray_at(const std::vector<unsigned> &indices) co
     T *start = this->data_ + index;
     T *end = start + new_shape_product;
     T *slice = new T[new_shape_product];
-    std::copy(start, end, slice);
+    copy(start, end, slice);
 
     return ndarray<T>(slice, new_shape);
 }
@@ -745,7 +800,12 @@ template float& ndarray<float>::operator()<int>(int);
 template float& ndarray<float>::operator()<int, int>(int, int);
 template float& ndarray<float>::operator()<int, int, int>(int, int, int);
 template float& ndarray<float>::operator()<int, int, int, int>(int, int, int, int);
+template float& ndarray<float>::operator()<int, int, int, int, int>(int, int, int, int, int);
 
+template float& ndarray<float>::operator()<unsigned int>(unsigned int);
 template float& ndarray<float>::operator()<unsigned int, unsigned int>(unsigned int, unsigned int);
+template float& ndarray<float>::operator()<unsigned int, unsigned int, unsigned int>(unsigned int, unsigned int, unsigned int);
+template float& ndarray<float>::operator()<unsigned int, unsigned int, unsigned int, unsigned int>(unsigned int, unsigned int, unsigned int, unsigned int);
+template float& ndarray<float>::operator()<unsigned int, unsigned int, unsigned int, unsigned int, unsigned int>(unsigned int, unsigned int, unsigned int, unsigned int, unsigned int);
 /**********************************************************************************************************************/
 
