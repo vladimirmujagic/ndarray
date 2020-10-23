@@ -13,21 +13,21 @@ int main() {
 
     cout << "Create 1d array" << endl;
     ndarray<float> a1(data, {120});
-    cout << a1 << endl << endl;
+    a1.print();
 
     cout << "Create 2d array" << endl;
     ndarray<float> a2(data, {6, 20});
-    cout << a2 << endl << endl;
+    a2.print();
 
     cout << "Create 3d array" << endl;
     ndarray<float> a3(data, {3, 2, 20});
-    cout << a3 << endl << endl;
+    a3.print();
 
     cout << "Create 4d array" << endl;
     ndarray<float> a4(data, {3, 2, 4, 5});
-    cout << a4 << endl << endl;
+    a4.print();
 
     cout << "Create 5d array" << endl;
     ndarray<float> a5(data, {3, 2, 2, 2, 5});
-    cout << a5 << endl << endl;
+    a5.print();
 }

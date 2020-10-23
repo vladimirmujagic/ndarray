@@ -107,7 +107,6 @@ SCENARIO( "ndarray constructor - fill with value", "[ndarray]" ) {
         float v = 2.;
         WHEN("2d ndarray is constructed") {
             ndarray<float> a(v, shape);
-            cout << a << endl;
             THEN("data is set to 0, dimension, size and strides are calculated") {
                 REQUIRE(a.dim == 2);
                 REQUIRE(a.size == 25);
@@ -219,7 +218,6 @@ SCENARIO( "ndarray constructor with existing data", "[ndarray]" ) {
         vector<unsigned> shape = {2, 2, 2, 2};
         WHEN("ndarray is constructed") {
             ndarray<float> a(data, shape);
-            cout << a << endl;
             THEN("data is assigned, dimension, size, strides are calculated") {
                 REQUIRE(a.dim == 4);
                 REQUIRE(a.size == 16);

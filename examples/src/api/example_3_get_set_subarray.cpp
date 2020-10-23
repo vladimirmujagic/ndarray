@@ -14,19 +14,19 @@ int main() {
 
     cout << "Create ndarray" << endl;
     ndarray<float> a(data, {6, 2, 10});
-    cout << a << endl << endl;
+    a.print();
 
     cout << "Get subarray at index 0" << endl;
     ndarray<float> a_sub_0 = a.subarray_at({0});
-    cout << a_sub_0 << endl << endl;
+    a_sub_0.print();
 
     cout << "Get subarray at index 3" << endl;
     ndarray<float> a_sub_3 = a.subarray_at({3});
-    cout << a_sub_3 << endl << endl;
+    a_sub_3.print();
 
     cout << "Get subarray at index (4, 1)" << endl;
     ndarray<float> a_sub_4_1 = a.subarray_at({4, 1});
-    cout << a_sub_4_1 << endl << endl;
+    a_sub_4_1.print();
 
     // Fails with assertion failed
     // ndarray<float> a_sub_4_1_0 = a.at({4, 1, 0});

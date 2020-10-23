@@ -12,6 +12,14 @@ int main() {
     float *data = dg.arange(20);
 
     ndarray<float> a(data, {5, 2, 2});
-    ndarray<bool> mask = a > 2.;
-    mask.print();
+    a.print();
+
+    a.reshape({2, 2, 5});
+    a.print();
+
+    a.reshape({10, 2});
+    a.print();
+
+    a.reshape({20});
+    a.print();
 }
