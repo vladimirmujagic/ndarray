@@ -3,6 +3,8 @@ cmake_minimum_required(VERSION 3.10)
 project(ndarray_examples)
 enable_testing()
 
+add_definitions(-DDEBUG=1)
+
 if(NOT TARGET ndarray)
     add_subdirectory(../core ndarray)
 endif()

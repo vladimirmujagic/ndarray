@@ -30,4 +30,8 @@ int main() {
     cout << "Create 5d array" << endl;
     ndarray<float> a5(data, {3, 2, 2, 2, 5});
     a5.print();
+
+    float *big_data = dg.arange(3 * 1024 * 720);
+    ndarray<float> biga(big_data, {3, 1024, 720});
+    big_data += 3;
 }
