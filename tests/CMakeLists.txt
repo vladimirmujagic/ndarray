@@ -3,6 +3,10 @@ cmake_minimum_required(VERSION 3.10)
 project(ndarray_tests)
 enable_testing()
 
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+
 if(NOT TARGET catch2)
     add_subdirectory(catch2)
 endif()

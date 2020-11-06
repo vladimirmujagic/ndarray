@@ -35,7 +35,7 @@ enum RelationalOpEnum {
     eGt,
     eGtEquals,
     eLt,
-    eLtEquals,
+    eLtEquals
 };
 
 
@@ -987,6 +987,16 @@ ndarray<T> _bitwise_aligned(ndarray<T> &a, ndarray<T> &b, BitwiseOpEnum op) {
 
 template <typename T>
 ndarray<bool> _relational_aligned(const ndarray<T> &a, const ndarray<T> &b, RelationalOpEnum op) {
+    bool *c_data = new bool[a.size];
+    for (unsigned i = 0; i < a.size; i++) {
+        c_data[i] = _relational_op(a.data_[i], b.data_[i], op);
+    }
+
+    return ndarray<bool>(c_data, a.shape);
+}
+
+template <typename T>
+ndarray<bool> broadcast_aligned(const ndarray<T> &a, const ndarray<T> &b, RelationalOpEnum op) {
     bool *c_data = new bool[a.size];
     for (unsigned i = 0; i < a.size; i++) {
         c_data[i] = _relational_op(a.data_[i], b.data_[i], op);

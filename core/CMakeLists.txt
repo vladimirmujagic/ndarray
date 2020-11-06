@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.10)
 
 project(libndarray)
 
-add_definitions(-DDEBUG=1)
+# add_definitions(-DDEBUG=1)
 
 set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 
