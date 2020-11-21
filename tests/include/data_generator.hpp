@@ -5,13 +5,13 @@
 
 #define RANDF(x) static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / x))
 
-
+template <typename T>
 class DataGenerator {
 public:
     DataGenerator() {}
 
-    float * arange(unsigned v) const {
-        float *data = new float[v];
+    T* arange(unsigned v) const {
+        T *data = new T[v];
         for(unsigned i = 0; i < v; i++) {
             data[i] = i;
         }
@@ -19,8 +19,8 @@ public:
         return data;
     }
 
-    float * like(unsigned size, float v) const {
-        float *data = new float[size];
+    T* like(unsigned size, T v) const {
+        T *data = new T[size];
         for(unsigned i = 0; i < size; i++) {
             data[i] = v;
         }

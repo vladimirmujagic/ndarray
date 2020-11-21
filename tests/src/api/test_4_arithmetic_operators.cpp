@@ -9,7 +9,7 @@
 
 using namespace std;
 
-DataGenerator data_generator;
+DataGenerator<float> data_generator;
 
 
 /***********************************************************************************************************************
@@ -156,7 +156,6 @@ SCENARIO( "ndarray operator + ", "[ndarray]" ) {
             ndarray<float> c = a + b;
             THEN("correct result is stored in c with shape (2, 3, 4, 5)") {
                 bool e = c.equals(c_gt);
-                c.print();
                 REQUIRE(e == true);
             }
         }
@@ -516,10 +515,11 @@ SCENARIO( "ndarray operator / ", "[ndarray]" ) {
 /**********************************************************************************************************************/
 
     GIVEN("ndarray A with shape (2, 3, 4, 5) and ndarray B with shape (5,)") {
-        float *data_a_unaligned = data_generator.arange(120);
-        float *data_b_unaligned = data_generator.arange(5);
-        data_a_aligned[0] = 1;
-        data_b_aligned[0] = 1;
+        DataGenerator<int> dg;
+        int *data_a_unaligned = dg.arange(120);
+        int *data_b_unaligned = dg.arange(5);
+        data_a_unaligned[0] = 1;
+        data_b_unaligned[0] = 1;
         float c_gt_data[120] = {
             1., 1., 1., 1., 1., 5., 6., 3.5, 2.66666667, 2.25, 10.,11., 6., 4.33333333,
             3.5, 15.,16., 8.5, 6., 4.75, 20.,21.,11., 7.66666667, 6., 25., 26., 13.5,
@@ -533,13 +533,16 @@ SCENARIO( "ndarray operator / ", "[ndarray]" ) {
             111., 56., 37.66666667, 28.5, 115., 116., 58.5, 39.33333333, 29.75
         };
         ndarray<float> c_gt(c_gt_data, {2, 3, 4, 5});
-        c_gt.print();
+
         WHEN("C = A / B is calculated") {
-            ndarray<float> a(data_a_unaligned, {2, 3, 4, 5});
-            ndarray<float> b(data_b_unaligned, {5});
-            ndarray<float> c = a / b;
+            ndarray<int> a(data_a_unaligned, {2, 3, 4, 5});
+            ndarray<int> b(data_b_unaligned, {5});
+            b += 100;
+            ndarray<int> c = a / b;
+            a.print(); b.print();
+            c.print();
             THEN("correct result is stored in C with shape (2, 3, 4, 5)") {
-                bool e = c.equals(c_gt);
+                //bool e = c.equals(c_gt);
                 // TODO
                 REQUIRE(true == true);
             }

@@ -10,7 +10,7 @@
 
 using namespace std;
 
-DataGenerator data_generator;
+DataGenerator<float> data_generator;
 
 
 SCENARIO( "ndarray subarray_at", "[ndarray]" ) {
